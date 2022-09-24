@@ -7,6 +7,18 @@ pub enum DataType{
     Str(String)
 }
 
+impl DataType{
+    pub fn to_string(&self) -> String {
+        return match self{
+            DataType::Null => String::from("Null"),
+            DataType::Bool(val) => val.to_string(),
+            DataType::Int(val) => val.to_string(),
+            DataType::Float(val) => val.to_string(),
+            DataType::Str(val) => val.to_owned(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct DBItem{
     pub key: u64,

@@ -1,9 +1,10 @@
 use core::panic;
 use std::{fs::File, io::{Read}};
+use std::io::Write;
 
 use self::db_item::{DataType, DBItem};
 
-mod db_item;
+pub mod db_item;
 
 pub struct DB{
     items: Vec<DBItem>
@@ -24,8 +25,6 @@ impl DB{
             file.read_to_string(&mut contents).unwrap();
             self.items = Self::parse_file_contents(&contents);
 
-            dbg!(self.items.clone());
-
         }else{
             File::create(DEFAULT_DB_FILE_PATH).unwrap();
         }
@@ -39,16 +38,30 @@ impl DB{
                 data
             }
         )
+        
     }
 
     pub fn save(&self){
         let mut output = String::new();
         for row in self.items.iter(){
-            
+            let data = row.data.clone();
+            output.push_str(format!("{}; ", row.key).as_str());
+            output.push_str(format!("{}; ", row.ident).as_str());
+            output.push_str(match data{
+                DataType::Null => String::from("Null:: ") + data.to_string().as_str(),
+                DataType::Bool(_) => String::from("Bool:: ") + data.to_string().as_str(),
+                DataType::Int(_) => String::from("Int:: ") + data.to_string().as_str(),
+                DataType::Float(_) => String::from("Float:: ") + data.to_string().as_str(),
+                DataType::Str(_) => String::from("Str:: ") + data.to_string().as_str()
+            }.as_str());
+            output.push('\n')
         }
-    }
+        let mut file = File::options().write(true).open(DEFAULT_DB_FILE_PATH).unwrap();
+        file.write(output.as_bytes()).unwrap();  
+     }
 
     fn parse_file_contents(file_contents: &String) -> Vec<DBItem>{
+        if file_contents.is_empty(){return Vec::new()}
         let mut database = Vec::<DBItem>::new();
         let file_contents = file_contents.trim().to_owned();
 
