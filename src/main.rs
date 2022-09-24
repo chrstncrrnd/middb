@@ -1,10 +1,13 @@
 // REMOVE THIS!!!!
 #[allow(dead_code)]
 
-
 mod db;
+mod utils;
+
+use db::DB;
 
 fn main() {
-    println!("Hello, world!");
+    let mut data_base = DB::new();
+    data_base.load()
 }
 
