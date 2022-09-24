@@ -7,7 +7,7 @@ mod utils;
 use db::DB;
 
 fn main() {
-    let mut data_base = DB::new();
-    data_base.load()
+    let mut database = DB::new();
+    database.load()
 }
 

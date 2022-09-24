@@ -20,15 +20,9 @@ impl DB{
 
     pub fn load(&mut self){
         if let Ok(mut file) = File::open(DEFAULT_DB_FILE_PATH){
-            
-            // 1 mib buffer (should not rly exceed this lol) if so we have a big problem
-            let buffer: &mut [u8; 1048576] = &mut [0_u8; 1048576];
-
-            file.read(buffer).unwrap();
-            
-            let file_contents = String::from_utf8_lossy(buffer).to_string();
-            
-            self.items = Self::parse_file_contents(&file_contents);
+            let mut contents = String::new();
+            file.read_to_string(&mut contents).unwrap();
+            self.items = Self::parse_file_contents(&contents);
 
             dbg!(self.items.clone());
 
@@ -37,23 +31,34 @@ impl DB{
         }
     }
 
-    fn save(&self){
+    pub fn add_entry(&mut self, key: u64, ident: String, data: DataType){
+        self.items.push(
+            DBItem{
+                key,
+                ident,
+                data
+            }
+        )
+    }
 
+    pub fn save(&self){
+        let mut output = String::new();
+        for row in self.items.iter(){
+            
+        }
     }
 
     fn parse_file_contents(file_contents: &String) -> Vec<DBItem>{
         let mut database = Vec::<DBItem>::new();
+        let file_contents = file_contents.trim().to_owned();
 
         for (row_number, row) in file_contents.split("\n").into_iter().enumerate(){
-            
             let mut key: u64 = u64::default();
             let mut ident: String = String::default();
             let mut data: DataType = DataType::Null;
             
             for (column_number, mut column) in row.split(";").into_iter().enumerate(){
                 column = column.trim();
-                
-                
                 match column_number{
                     0 => {
                         // key
@@ -78,19 +83,19 @@ impl DB{
                                 }else if data_value == "false"{
                                     data = DataType::Bool(false);
                                 }else{
-                                    panic!("Syntax error on line {column_number}: {data_value} should be either true or false")
+                                    panic!("Error whilst parsing bool on row: {}", row_number + 1)
                                 }
                             },
                             "Int" => {
                                 match data_value.parse(){
                                     Ok(val) => {data = DataType::Int(val)},
-                                    Err(_) => {panic!("Error whilst parsing integer on row: {row_number}")}
+                                    Err(err) => {panic!("Error whilst parsing integer on row {}: {err}, {data_value}", row_number + 1)}
                                 }
                             },
                             "Float" => {
                                 match data_value.parse(){
                                     Ok(val) => {data = DataType::Float(val)},
-                                    Err(_) => {panic!("Error whilst parsing float on row: {row_number}")}
+                                    Err(err) => {panic!("Error whilst parsing float on row {}: {err}", row_number + 1)}
                                 }
                             },
                             "Str" => {
@@ -101,7 +106,7 @@ impl DB{
                     }
                     _ => {
                         // there should not be more than 3 columns
-                        panic!("Error whilst parsing database: row {row_number} incorrectly formatted")
+                        panic!("Error whilst parsing database: row {} incorrectly formatted", row_number + 1)
                     }
                 }
 
