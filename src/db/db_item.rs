@@ -9,13 +9,13 @@ pub enum DataType {
 
 impl ToString for DataType {
     fn to_string(&self) -> String {
-        return match self {
+        match self {
             DataType::Null => String::from("Null"),
             DataType::Bool(val) => val.to_string(),
             DataType::Int(val) => val.to_string(),
             DataType::Float(val) => val.to_string(),
             DataType::Str(val) => val.to_owned(),
-        };
+        }
     }
 }
 

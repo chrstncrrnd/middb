@@ -70,20 +70,21 @@ impl DB {
         }
     }
 
-    pub fn add_entry_last(&mut self, ident: String, data: DataType) {
+    pub fn add_entry_last(&mut self, ident: String, data: DataType) -> u64{
         let mut key = 0;
         if let Some(last) = self.items.last() {
             key = last.key + 1;
         }
         self.add_entry(key, ident, data);
+        key
     }
 
     pub fn len(&self) -> usize {
         self.items.len()
     }
 
-    pub fn read_row(&self, i: u64) -> Option<DBItem> {
-        if let Some(val) = self.items.get(i as usize) {
+    pub fn read_row(&self, i: usize) -> Option<DBItem> {
+        if let Some(val) = self.items.get(i) {
             Some(val.clone())
         } else {
             None
@@ -112,7 +113,10 @@ impl DB {
             .write(true)
             .open(DEFAULT_DB_FILE_PATH)
             .unwrap();
-        file.write(output.as_bytes()).unwrap();
+        let bytes_ammount = file.write(output.as_bytes()).unwrap();
+        if bytes_ammount != output.len(){
+            panic!("Couldn't save all of the file!")
+        }
     }
 
     // parses the file contents
