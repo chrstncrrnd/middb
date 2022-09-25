@@ -48,6 +48,7 @@ fn parse_input(input: String) -> Result<Commands, String>{
                 },
                 "ident" => Ok(Commands::GetFromIdent(inputs[2].to_owned())),
                 "len" => Ok(Commands::GetLen),
+                "all" => Ok(Commands::GetAll),
                 _ => Err("should be `get key <key>` or `get ident <ident>`".to_owned())
             }
         },
