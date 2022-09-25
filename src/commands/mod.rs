@@ -5,8 +5,9 @@ pub enum Commands{
     GetFromIdent(String),
     AddEntry{ident: String, data: DataType},
     AddEntryWithKey{key: u64, ident: String, data: DataType},
-    ModifyEntry{key: Option<u64>, ident: Option<String>, data: Option<DataType>},
+    ModifyEntry{key: u64, ident: String, data: DataType},
     GetLen,
+    GetAll,
     Save,
     Reload,
     Stop
@@ -14,11 +15,11 @@ pub enum Commands{
 
 impl Commands{
     fn print_column_header() {
-        println!("{key:<6}|{ident:^15}|{value:>20}", key="Key", ident="Ident", value="Value");
+        println!("|{key:<6}|{ident:^15}|{value:>15}|", key="Key", ident="Ident", value="Value");
     }
     fn print_column(key: u64, ident: String, data: DataType) {
         let value = data.to_string();
-        println!("{key:<6}|{ident:^15}|{value:>20}")
+        println!("|{key:<6}|{ident:^15}|{value:>15}|")
     }
     pub fn run(&self, database: &mut DB) {
         match &self {
@@ -51,10 +52,23 @@ impl Commands{
                 println!("Added new column:");
                 Self::print_column(key, ident.clone(), data.clone());
             },
-            Commands::AddEntryWithKey { key, ident, data } => todo!(),
-            Commands::ModifyEntry { key, ident, data } => todo!(),
+            Commands::AddEntryWithKey { key, ident, data } => {
+                database.add_entry(*key, ident.clone(), data.clone());
+                println!("Added new column:");
+                Self::print_column(*key, ident.clone(), data.clone());
+                
+            },
+            Commands::ModifyEntry { key, ident, data } => {
+                database.modify_entry_from_key(*key, ident.clone(), data.clone())
+            },
             Commands::GetLen => {
-                println!("database size: {}", database.len())
+                println!("Database size: {}", database.len())
+            },
+            Commands::GetAll => {
+                Self::print_column_header();
+                for row in database.get_all(){
+                    Self::print_column(row.key, row.ident, row.data)
+                }
             },
             Commands::Save => {
                 database.save();

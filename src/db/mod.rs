@@ -90,6 +90,9 @@ impl DB {
             None
         }
     }
+    pub fn get_all(&self) -> Vec<DBItem> {
+        return self.items.clone();
+    }
 
     pub fn save(&self) {
         let mut output = String::new();
