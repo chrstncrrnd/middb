@@ -54,7 +54,7 @@ fn parse_input(input: String) -> Result<Commands, String>{
         },
         "add" => {
             let ident = inputs[1];
-            match parse_data_type(inputs[2], inputs[3]){
+            match parse_data_type(inputs){
                 Ok(val) => Ok(Commands::AddEntry { ident: ident.to_owned(), data: val }),
                 Err(err) => Err(err)
             }
@@ -62,7 +62,7 @@ fn parse_input(input: String) -> Result<Commands, String>{
         "insert" => {
             let ident = inputs[1];
             if let Ok(key) = inputs[2].parse(){
-                match parse_data_type(inputs[3], inputs[4]){
+                match parse_data_type(inputs){
                     Ok(data) => Ok(Commands::AddEntryWithKey { key, ident: ident.to_string(), data }),
                     Err(e) => Err(e),
                 }
@@ -73,7 +73,7 @@ fn parse_input(input: String) -> Result<Commands, String>{
         "modify" => {
             let ident = inputs[1];
             if let Ok(key) = inputs[2].parse(){
-                match parse_data_type(inputs[3], inputs[4]){
+                match parse_data_type(inputs){
                     Ok(data) => Ok(Commands::ModifyEntry { key, ident: ident.to_owned(), data }),
                     Err(e) => Err(e),
                 }
@@ -89,7 +89,9 @@ fn parse_input(input: String) -> Result<Commands, String>{
     }
 }
 
-fn parse_data_type(data_type: &str, data_value: &str) -> Result<DataType, String>{
+fn parse_data_type(inputs: Vec<&str>) -> Result<DataType, String>{
+    let data_type = inputs[2];
+    let data_value = inputs[3];
     match data_type{
         "Null" => {
             Ok(DataType::Null)
@@ -114,7 +116,24 @@ fn parse_data_type(data_type: &str, data_value: &str) -> Result<DataType, String
             Err(err) => Err(err.to_string()),
         },
         "Str" => {
-            Ok(DataType::Str(data_value.to_string()))
+            let data = inputs[3..].join(" ");
+            let mut found_start = false;
+            let mut start = 0;
+            let mut end = 0;
+            let mut prev_char = '\0';
+
+            for (i, ch) in data.chars().into_iter().enumerate(){
+                if ch == '\"' && prev_char != '\\'{
+                    if !found_start{
+                        start = i;
+                        found_start = true;
+                    }else{
+                        end = i;
+                    }
+                }
+                prev_char = ch;
+            }
+            Ok(DataType::Str(data[start + 1..end].to_owned()))
         }
         // if it doesnt fall into any of the other branches, something's wrong, panic
         _ => {
