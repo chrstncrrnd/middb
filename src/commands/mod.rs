@@ -15,11 +15,11 @@ pub enum Commands{
 
 impl Commands{
     fn print_column_header() {
-        println!("|{key:<6}|{ident:^15}|{value:>15}|", key="Key", ident="Ident", value="Value");
+        println!("{key:<6}|{ident:^15}|{value:>15}", key="Key", ident="Ident", value="Value");
     }
     fn print_column(key: u64, ident: String, data: DataType) {
         let value = data.to_string();
-        println!("|{key:<6}|{ident:^15}|{value:>15}|")
+        println!("{key:<6}|{ident:^15}|{value:>15}")
     }
     pub fn run(&self, database: &mut DB) {
         match &self {

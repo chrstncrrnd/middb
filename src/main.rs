@@ -49,10 +49,13 @@ fn parse_input(input: String) -> Result<Commands, String>{
                 "ident" => Ok(Commands::GetFromIdent(inputs[2].to_owned())),
                 "len" => Ok(Commands::GetLen),
                 "all" => Ok(Commands::GetAll),
-                _ => Err("should be `get key <key>` or `get ident <ident>`".to_owned())
+                _ => Err(format!("the command get does not have a '{}' subcommand", inputs[1]))
             }
         },
         "add" => {
+            if inputs.len() <= 3{
+                return Err("not enough arguments.".to_owned())
+            }
             let ident = inputs[1];
             match parse_data_type(inputs){
                 Ok(val) => Ok(Commands::AddEntry { ident: ident.to_owned(), data: val }),
@@ -133,7 +136,7 @@ fn parse_data_type(inputs: Vec<&str>) -> Result<DataType, String>{
                 }
                 prev_char = ch;
             }
-            Ok(DataType::Str(data[start + 1..end].to_owned()))
+            Ok(DataType::Str(data[start + 1..end].to_owned().replace("\\\"", "\"")))
         }
         // if it doesnt fall into any of the other branches, something's wrong, panic
         _ => {
