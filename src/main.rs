@@ -1,9 +1,8 @@
 // REMOVE THIS!!!!
+mod cli;
 #[allow(dead_code)]
-
 mod db;
 mod utils;
-mod cli;
 
 use db::db_item::DataType;
 use db::DB;
@@ -11,8 +10,8 @@ use db::DB;
 fn main() {
     let mut database = DB::new();
     database.load();
-    database.add_entry(3, "sussy baka 03".to_owned(), DataType::Str("ther is an imposter among us".to_owned()));
+    database.add_entry_last("number".to_owned(), DataType::Int(19));
+    database.add_entry_last("number".to_owned(), DataType::Int(10));
+    database.add_entry_last("number".to_owned(), DataType::Float(100.1));
     database.save();
-
 }
-
