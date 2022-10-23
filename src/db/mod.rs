@@ -4,6 +4,8 @@ use std::{fs::File, io::Read};
 
 use self::db_item::{DBItem, DataType};
 
+use crate::utils;
+
 pub mod db_item;
 
 /// # Db
@@ -133,83 +135,52 @@ impl DB {
 
         let mut database = Vec::<DBItem>::new();
 
-        for (row_number, row) in file_contents.split('\n').into_iter().enumerate() {
-            let mut key: u64 = u64::default();
-            let mut ident: String = String::default();
-            let mut data: DataType = DataType::Null;
-
-            for (column_number, mut column) in row.split(';').into_iter().enumerate() {
-                column = column.trim();
-                // goes through each column
-                match column_number {
-                    0 => {
-                        // key
-                        key = column.parse().unwrap();
-                    }
-                    1 => {
-                        // ident
-                        ident = column.to_owned();
-                    }
-                    2 => {
-                        // data
-                        // very very long way of doing this bruh
-                        // parses the data
-                        // split string into 2 pieces: its datatype and the actual value
-                        let mut split = column.split("::");
-                        // idk how to make this better but it works
-                        let [data_type, data_value]: [String; 2] = [
-                            split.next().unwrap().trim().to_owned(),
-                            split.next().unwrap().trim().to_owned(),
-                        ];
-                        // check what datatype it is
-                        match data_type.as_str() {
-                            "Null" => {
-                                data = DataType::Null;
-                            }
-                            "Bool" => {
-                                if data_value == "true" {
-                                    data = DataType::Bool(true);
-                                } else if data_value == "false" {
-                                    data = DataType::Bool(false);
-                                } else {
-                                    panic!("Error whilst parsing bool on row: {row_number}")
-                                }
-                            }
-                            "Int" => {
-                                match data_value.parse() {
-                                    Ok(val) => data = DataType::Int(val),
-                                    Err(err) => {
-                                        panic!("Error whilst parsing integer on row {row_number}: {err}")
-                                    }
-                                }
-                            }
-                            "Float" => match data_value.parse() {
-                                Ok(val) => data = DataType::Float(val),
-                                Err(err) => {
-                                    panic!("Error whilst parsing float on row {row_number}: {err}")
-                                }
-                            },
-                            "Str" => {
-                                data = DataType::Str(data_value);
-                            }
-                            // if it doesnt fall into any of the other branches, something's wrong, panic
-                            _ => {
-                                panic!("Syntax error on row: {row_number}, {data_type}' is not a valid data type. ")
-                            }
-                        }
-                    }
-                    _ => {
-                        // there should not be more than 3 columns
-                        panic!(
-                            "Error whilst parsing database: row {row_number} incorrectly formatted"
-                        )
-                    }
-                }
+        
+        for (row_number, row) in file_contents.split("\n").into_iter().enumerate(){
+            if let Some(item) = Self::parse_row(row, row_number){
+                database.push(item);
             }
-
-            database.push(DBItem { key, ident, data })
         }
+        
 
         database
     }
+
+    fn parse_row(mut row: &str, row_number: usize) -> Option<DBItem>{
+        row = row.trim();
+        
+        if row.is_empty() {return None};
+        
+        let mut item = DBItem{
+            key: 0,
+            ident: String::new(),
+            data: DataType::Null
+        };
+        
+        
+        let row: Vec<&str> = row.splitn(3, ";").collect();
+
+        // parse key
+        if let Ok(k) = row[0].trim().parse::<u64>(){
+            item.key = k;
+        }else{
+            eprintln!("Error parsing key on row: {row_number}");
+            return None;
+        }
+
+        // parse ident
+        item.ident = row[1].trim().to_owned();
+
+
+        let data_type_w_value = row[2].trim().splitn(2, "::").collect::<Vec<&str>>();
+        
+
+        match utils::parse_data_type(data_type_w_value){
+            Ok(val) => item.data = val,
+            Err(err) => eprintln!("Error: {err} while parsing data on line: {row_number}")
+        }
+        
+        Some(item)
+    }
+
 }
