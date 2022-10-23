@@ -108,7 +108,7 @@ impl DB {
                     DataType::Bool(_) => String::from("Bool:: ") + data.to_string().as_str(),
                     DataType::Int(_) => String::from("Int:: ") + data.to_string().as_str(),
                     DataType::Float(_) => String::from("Float:: ") + data.to_string().as_str(),
-                    DataType::Str(_) => String::from("Str:: ") + data.to_string().as_str(),
+                    DataType::Str(_) => String::from("Str:: ") + "\"" + data.to_string().as_str() + "\"",
                 }
                 .as_str(),
             );
@@ -179,7 +179,7 @@ impl DB {
             Ok(val) => item.data = val,
             Err(err) => eprintln!("Error: {err} while parsing data on line: {row_number}")
         }
-        
+
         Some(item)
     }
 
